@@ -1,7 +1,7 @@
 // ─── Firebase Push Notifications ─────────────────────────────────────────────
 var Push = (function () {
   var DEVICE_KEY = 'cukrus-device-id';
-  var app, messaging, db;
+  var _db;
   var initialized = false;
 
   function getDeviceId() {
@@ -16,30 +16,24 @@ var Push = (function () {
   }
 
   function setup() {
-    if (initialized) return;
+    if (initialized) return true;
     if (typeof FIREBASE_CONFIG === 'undefined' || FIREBASE_CONFIG.apiKey === 'REPLACE_ME') {
       console.warn('[Push] firebase-config.js nie jest skonfigurowany.');
-      return;
+      return false;
     }
-    try {
-      app       = firebase.initializeApp(FIREBASE_CONFIG);
-      messaging = firebase.messaging();
-      db        = firebase.firestore();
-      initialized = true;
-    } catch (e) {
-      // już zainicjowany
-      app       = firebase.app();
-      messaging = firebase.messaging();
-      db        = firebase.firestore();
-      initialized = true;
-    }
+    try { firebase.initializeApp(FIREBASE_CONFIG); } catch (e) { /* already initialized */ }
+    _db = firebase.firestore();
+    initialized = true;
+    return true;
   }
 
-  function getToken() {
-    if (!initialized) return Promise.resolve(null);
-    if (Notification.permission !== 'granted') return Promise.resolve(null);
+  // Messaging inicjujemy dopiero TU — tuż przed getToken z naszym SW,
+  // żeby Firebase nie zdążył zarejestrować własnego firebase-messaging-sw.js
+  function getFcmToken() {
+    if (!initialized || Notification.permission !== 'granted') return Promise.resolve(null);
     return navigator.serviceWorker.ready.then(function (reg) {
-      return messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+      var msg = firebase.messaging();
+      return msg.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
     }).catch(function (err) {
       console.warn('[Push] getToken error:', err);
       return null;
@@ -49,7 +43,7 @@ var Push = (function () {
   function sync(sensors) {
     if (!initialized) return;
     var deviceId = getDeviceId();
-    getToken().then(function (token) {
+    getFcmToken().then(function (token) {
       if (!token) return;
       var firedNotifications = [];
       sensors.forEach(function (s) {
@@ -57,15 +51,12 @@ var Push = (function () {
           if (!firedNotifications.includes(n)) firedNotifications.push(n);
         });
       });
-      return db.collection('devices').doc(deviceId).set({
+      return _db.collection('devices').doc(deviceId).set({
         fcmToken: token,
         sensors: sensors.map(function (s) {
           return {
-            id: s.id,
-            type: s.type,
-            name: s.name || '',
-            expiresAt: s.expiresAt,
-            durationDays: s.durationDays,
+            id: s.id, type: s.type, name: s.name || '',
+            expiresAt: s.expiresAt, durationDays: s.durationDays,
             customReminders: s.customReminders || []
           };
         }),
@@ -77,28 +68,18 @@ var Push = (function () {
     });
   }
 
-  function sendTest() {
-    if (!initialized) {
-      alert('Firebase nie jest skonfigurowany.');
-      return;
-    }
-    var deviceId = getDeviceId();
-    var fns = firebase.app().functions('europe-west1');
-    var sendTestNotification = fns.httpsCallable('sendTestNotification');
-    sendTestNotification({ deviceId: deviceId })
-      .then(function () {
-        alert('Testowe powiadomienie FCM wysłane! Sprawdź telefon.');
-      })
-      .catch(function (err) {
-        alert('Błąd FCM: ' + err.message);
-      });
+  function init(sensors) {
+    if (!setup()) return;
+    sync(sensors);
   }
 
-  function init(sensors) {
-    setup();
-    if (!initialized) return;
-    messaging.onTokenRefresh(function () { sync(sensors); });
-    sync(sensors);
+  function sendTest() {
+    if (!initialized) { alert('Firebase nie jest skonfigurowany.'); return; }
+    var deviceId = getDeviceId();
+    var fn = firebase.app().functions('europe-west1').httpsCallable('sendTestNotification');
+    fn({ deviceId: deviceId })
+      .then(function () { alert('Testowe powiadomienie FCM wysłane! Sprawdź telefon.'); })
+      .catch(function (err) { alert('Błąd FCM: ' + err.message); });
   }
 
   return { init: init, sync: sync, sendTest: sendTest };
