@@ -8,7 +8,7 @@ const messaging = admin.messaging();
 // Uruchamia się co godzinę i sprawdza wszystkie urządzenia
 exports.checkSensorNotifications = functions
   .region('europe-west1')
-  .pubsub.schedule('every 60 minutes')
+  .pubsub.schedule('every 6 hours')
   .onRun(async () => {
     const snapshot = await db.collection('devices').get();
     const now = Date.now();
