@@ -1,5 +1,5 @@
-// ─── Wypełnij swoimi danymi z Firebase Console ───────────────────────────────
-// Firebase Console → Project settings → Your apps → Web app → Config
+// Skopiuj ten plik jako firebase-config.js i wypełnij swoimi danymi.
+// firebase-config.js jest w .gitignore i nigdy nie trafia do repo.
 
 var FIREBASE_CONFIG = {
   apiKey:            'REPLACE_ME',
