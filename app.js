@@ -29,7 +29,7 @@ function saveSettings() {
 
 function registerSW() {
   if (!('serviceWorker' in navigator)) return;
-  navigator.serviceWorker.register('/sw.js').then(function (reg) {
+  navigator.serviceWorker.register('./sw.js').then(function (reg) {
     swReg = reg;
     // Try to register periodic background sync
     if ('periodicSync' in reg) {
