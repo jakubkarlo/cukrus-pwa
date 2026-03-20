@@ -215,7 +215,7 @@ function checkNotifPermission() {
   if (Notification.permission === 'granted') {
     banner.style.display = 'none';
   } else if (Notification.permission === 'denied') {
-    banner.querySelector('.banner-text').textContent = 'Powiadomienia zablokowane. Włącz je w ustawieniach przeglądarki.';
+    banner.querySelector('.banner-text').textContent = 'Powiadomienia zablokowane. Kliknij ikonę 🔒 w pasku adresu → Uprawnienia → Powiadomienia → Zezwól.';
     banner.style.display = 'flex';
     banner.querySelector('button').style.display = 'none';
   } else {
