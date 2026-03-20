@@ -1,4 +1,5 @@
 var CACHE_NAME = 'diabetes-v1';
+var SW_BASE = self.location.href.replace(/sw\.js.*$/, '');
 var ASSETS = [
   './',
   './index.html',
@@ -83,8 +84,8 @@ function checkAndFireNotifications() {
             : 'Do ko\u0144ca dzia\u0142ania zosta\u0142o ' + hours + ' godzin!';
           return self.registration.showNotification(title, {
             body: body,
-            icon: '/icon-192.svg',
-            badge: '/icon-192.svg',
+            icon: SW_BASE + 'icon-192.svg',
+            badge: SW_BASE + 'icon-192.svg',
             tag: notifId,
             renotify: true,
             data: { sensorId: sensor.id }
@@ -155,7 +156,7 @@ self.addEventListener('notificationclick', function (e) {
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
       if (list.length > 0) return list[0].focus();
-      return clients.openWindow('/');
+      return clients.openWindow(SW_BASE);
     })
   );
 });

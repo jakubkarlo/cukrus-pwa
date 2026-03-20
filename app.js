@@ -31,6 +31,8 @@ function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   navigator.serviceWorker.register('./sw.js').then(function (reg) {
     swReg = reg;
+    // Sprawdź powiadomienia przy każdym otwarciu strony
+    navigator.serviceWorker.ready.then(function () { triggerSWCheck(); });
     // Try to register periodic background sync
     if ('periodicSync' in reg) {
       navigator.permissions.query({ name: 'periodic-background-sync' }).then(function (status) {
@@ -359,8 +361,8 @@ function sendTestNotification() {
   if (swReg) {
     swReg.showNotification('Cukruś - Test powiadomień', {
       body: 'Powiadomienia działają poprawnie! 🎉',
-      icon: '/icon-192.svg',
-      badge: '/icon-192.svg'
+      icon: './icon-192.svg',
+      badge: './icon-192.svg'
     });
   } else {
     new Notification('Cukruś - Test powiadomień', { body: 'Powiadomienia działają poprawnie! 🎉' });
