@@ -47,16 +47,8 @@ exports.checkSensorNotifications = functions
           sends.push(
             messaging.send({
               token: fcmToken,
-              notification: { title, body },
+              data: { title, body, tag: notifId },
               webpush: {
-                notification: {
-                  title,
-                  body,
-                  icon:  'https://jakubkarlo.github.io/cukrus-pwa/icon-192.svg',
-                  badge: 'https://jakubkarlo.github.io/cukrus-pwa/icon-192.svg',
-                  tag:   notifId,
-                  renotify: true
-                },
                 fcmOptions: { link: 'https://jakubkarlo.github.io/cukrus-pwa/' }
               }
             })
@@ -98,17 +90,12 @@ exports.sendTestNotification = functions
 
     await messaging.send({
       token: fcmToken,
-      notification: {
+      data: {
         title: 'Cukruś — test FCM 🎉',
-        body: 'Firebase Cloud Messaging działa poprawnie!'
+        body: 'Firebase Cloud Messaging działa poprawnie!',
+        tag: 'test'
       },
       webpush: {
-        notification: {
-          title: 'Cukruś — test FCM 🎉',
-          body: 'Firebase Cloud Messaging działa poprawnie!',
-          icon:  'https://jakubkarlo.github.io/cukrus-pwa/icon-192.svg',
-          badge: 'https://jakubkarlo.github.io/cukrus-pwa/icon-192.svg'
-        },
         fcmOptions: { link: 'https://jakubkarlo.github.io/cukrus-pwa/' }
       }
     });

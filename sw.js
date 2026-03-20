@@ -154,15 +154,16 @@ self.addEventListener('message', function (e) {
 self.addEventListener('push', function (e) {
   var data = {};
   try { data = e.data ? e.data.json() : {}; } catch (err) {}
-  var n = data.notification || {};
-  var title = n.title || 'Cukruś';
-  var body  = n.body  || '';
+  // data-only message: pola są w data{}, notification message: w notification{}
+  var title = (data.data && data.data.title) || data.title || (data.notification && data.notification.title) || 'Cukruś';
+  var body  = (data.data && data.data.body)  || data.body  || (data.notification && data.notification.body)  || '';
+  var tag   = (data.data && data.data.tag)   || data.tag   || 'cukrus-push';
   e.waitUntil(
     self.registration.showNotification(title, {
       body:  body,
       icon:  SW_BASE + 'icon-192.svg',
       badge: SW_BASE + 'icon-192.svg',
-      tag:   data.tag || 'cukrus-push',
+      tag:   tag,
       data:  data.data || {}
     })
   );
