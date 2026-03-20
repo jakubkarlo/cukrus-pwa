@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ff6bb5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Cukruś">
+  <meta name="description" content="Przypomnienia o wymianie sensorów i wkłuć dla diabetyków">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.svg">
+  <link rel="icon" type="image/svg+xml" href="/icon-192.svg">
+  <title>Cukruś - Zmieniaj wkłucia i sensory</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous">
+</head>
+<body>
+
+  <!-- Lock Screen -->
+  <div id="lock-overlay">
+    <div class="lock-clouds-bg" aria-hidden="true">
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
+      <div class="cloud cloud-3"></div>
+    </div>
+    <div id="lock-card">
+      <div class="lock-icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <div class="lock-title">Cukruś</div>
+      <div class="lock-sub">Aplikacja chroniona hasłem</div>
+
+      <div class="lock-field-wrap">
+        <input type="password" id="lock-pwd" class="lock-input" placeholder="Wpisz hasło…"
+          onkeydown="if(event.key==='Enter') Lock.submitEnter()">
+      </div>
+      <div id="lock-err" class="lock-err" style="display:none;"></div>
+      <button id="lock-submit-btn" class="lock-btn" onclick="Lock.submitEnter()">Wejdź</button>
+    </div>
+  </div>
+
+  <!-- Floating clouds -->
+  <div class="clouds-bg" aria-hidden="true">
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    <div class="cloud cloud-3"></div>
+  </div>
+
+  <!-- Floating deco -->
+  <div class="candy-deco" aria-hidden="true"><i class="fa-solid fa-star"></i></div>
+  <div class="candy-deco" aria-hidden="true"><i class="fa-solid fa-moon"></i></div>
+  <div class="candy-deco" aria-hidden="true"><i class="fa-solid fa-wand-sparkles"></i></div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <span class="header-icon"><i class="fa-solid fa-droplet"></i></span>
+    <div class="header-text">
+      <div class="header-title">Cukruś</div>
+      <div class="header-subtitle">Przypomnienia o sensorach i wkłuciach</div>
+    </div>
+    <button class="header-settings-btn" onclick="Lock.lock()" title="Zablokuj" style="margin-right:6px;"><i class="fa-solid fa-lock"></i></button>
+    <button class="header-settings-btn" onclick="toggleSettings()" title="Ustawienia"><i class="fa-solid fa-gear"></i></button>
+  </header>
+
+  <!-- Install Banner -->
+  <div class="banner banner-install" id="install-banner">
+    <span class="banner-icon"><i class="fa-solid fa-mobile-screen-button"></i></span>
+    <span class="banner-text">Zainstaluj aplikację, aby powiadomienia działały w tle.</span>
+    <button id="install-btn">Instaluj</button>
+  </div>
+
+  <!-- Notification Permission Banner -->
+  <div class="banner banner-notif" id="notif-banner" style="display:none;">
+    <span class="banner-icon"><i class="fa-solid fa-bell"></i></span>
+    <span class="banner-text">Włącz powiadomienia, aby otrzymywać przypomnienia o wymianie.</span>
+    <button onclick="requestNotifPermission()">Włącz</button>
+  </div>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Active sensors -->
+    <div class="section-title">Aktywne wpisy</div>
+
+    <div id="sensor-list"></div>
+
+    <div id="empty-state" style="display:none;">
+      <div class="empty-blob"><i class="fa-solid fa-calendar-days"></i></div>
+      <div class="empty-title">Brak aktywnych wpisów</div>
+      <div class="empty-hint">Naciśnij przycisk + poniżej, aby dodać sensor CGM lub wkłucie.</div>
+    </div>
+
+    <!-- Settings -->
+    <div class="settings-section">
+      <div class="settings-toggle" onclick="toggleSettings()">
+        <i class="fa-solid fa-gear"></i>
+        <span>Ustawienia</span>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div id="settings-panel">
+        <div class="settings-group-title">Domyślne przypomnienia dla nowych wpisów</div>
+        <div class="fixed-reminder-note">
+          <i class="fa-solid fa-lock"></i>
+          Przypomnienie 24h przed końcem jest zawsze aktywne.
+        </div>
+        <div id="settings-reminders"></div>
+        <div class="divider"></div>
+        <button class="test-notif-btn" onclick="sendTestNotification()"><i class="fa-solid fa-bell"></i> Wyślij testowe powiadomienie</button>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FAB -->
+  <button class="fab" onclick="openAddModal()" title="Dodaj nowy wpis">+</button>
+
+  <!-- Add Modal -->
+  <div class="modal-overlay" id="add-modal" onclick="handleModalOverlayClick(event)">
+    <div class="modal" id="add-modal-inner">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Nowy wpis</div>
+
+      <form onsubmit="submitAddForm(event)">
+
+        <div class="form-group">
+          <label>Typ</label>
+          <div class="type-selector">
+            <div class="type-option">
+              <input type="radio" name="type" id="t-sensor" value="sensor" checked onchange="onTypeChange()">
+              <label for="t-sensor">
+                <span class="type-emoji"><i class="fa-solid fa-satellite-dish"></i></span>
+                Sensor CGM
+              </label>
+            </div>
+            <div class="type-option">
+              <input type="radio" name="type" id="t-wklucie" value="wklucie" onchange="onTypeChange()">
+              <label for="t-wklucie">
+                <span class="type-emoji"><i class="fa-solid fa-syringe"></i></span>
+                Wkłucie
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="f-name">Nazwa (opcjonalnie)</label>
+          <input type="text" id="f-name" placeholder="np. Dexcom G7, Omnipod, lewe ramię…" maxlength="60">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="f-start">Data i czas założenia</label>
+            <input type="datetime-local" id="f-start" required>
+          </div>
+          <div class="form-group">
+            <label for="f-duration">Czas działania (dni)</label>
+            <input type="number" id="f-duration" min="1" max="30" value="7" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Przypomnienia</label>
+          <div class="fixed-reminder-note">
+            <i class="fa-solid fa-lock"></i>
+            Zawsze: 24h przed końcem (stałe)
+          </div>
+          <div id="modal-reminders"></div>
+        </div>
+
+        <button type="submit" class="btn-primary">Zapisz wpis</button>
+        <button type="button" class="btn-secondary" onclick="closeAddModal()">Anuluj</button>
+
+      </form>
+    </div>
+  </div>
+
+  <script src="db.js"></script>
+  <script src="lock.js"></script>
+  <script src="app.js"></script>
+  <script>
+    function handleModalOverlayClick(e) {
+      if (e.target === document.getElementById('add-modal')) closeAddModal();
+    }
+    Lock.init();
+  </script>
+</body>
+</html>
