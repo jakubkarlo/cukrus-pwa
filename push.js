@@ -77,13 +77,29 @@ var Push = (function () {
     });
   }
 
+  function sendTest() {
+    if (!initialized) {
+      alert('Firebase nie jest skonfigurowany.');
+      return;
+    }
+    var deviceId = getDeviceId();
+    var fns = firebase.app().functions('europe-west1');
+    var sendTestNotification = fns.httpsCallable('sendTestNotification');
+    sendTestNotification({ deviceId: deviceId })
+      .then(function () {
+        alert('Testowe powiadomienie FCM wysłane! Sprawdź telefon.');
+      })
+      .catch(function (err) {
+        alert('Błąd FCM: ' + err.message);
+      });
+  }
+
   function init(sensors) {
     setup();
     if (!initialized) return;
-    // Odśwież token i wyślij dane przy każdym otwarciu
     messaging.onTokenRefresh(function () { sync(sensors); });
     sync(sensors);
   }
 
-  return { init: init, sync: sync };
+  return { init: init, sync: sync, sendTest: sendTest };
 })();

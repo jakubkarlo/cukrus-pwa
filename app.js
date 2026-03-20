@@ -361,13 +361,17 @@ function toggleSettings() {
 function sendTestNotification() {
   if (!('Notification' in window)) { alert('Twoja przeglądarka nie obsługuje powiadomień.'); return; }
   if (Notification.permission !== 'granted') { requestNotifPermission(); return; }
-  if (swReg) {
-    swReg.showNotification('Cukruś - Test powiadomień', {
-      body: 'Powiadomienia działają poprawnie! 🎉',
-      icon: './icon-192.svg',
-      badge: './icon-192.svg'
-    });
+  // Wyślij przez Firebase FCM (prawdziwy push w tle)
+  if (typeof Push !== 'undefined') {
+    Push.sendTest();
   } else {
-    new Notification('Cukruś - Test powiadomień', { body: 'Powiadomienia działają poprawnie! 🎉' });
+    // Fallback lokalny jeśli Firebase nie skonfigurowany
+    if (swReg) {
+      swReg.showNotification('Cukruś - Test lokalny', {
+        body: 'Lokalne powiadomienie działa. Skonfiguruj Firebase dla powiadomień w tle.',
+        icon: './icon-192.svg',
+        badge: './icon-192.svg'
+      });
+    }
   }
 }

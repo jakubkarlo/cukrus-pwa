@@ -82,3 +82,36 @@ exports.checkSensorNotifications = functions
     await Promise.all(promises);
     functions.logger.info(`Sprawdzono ${snapshot.size} urządzeń.`);
   });
+
+// Callable function — wysyła testowe FCM od razu po wywołaniu z appki
+exports.sendTestNotification = functions
+  .region('europe-west1')
+  .https.onCall(async (data) => {
+    const { deviceId } = data;
+    if (!deviceId) throw new functions.https.HttpsError('invalid-argument', 'Brak deviceId');
+
+    const doc = await db.collection('devices').doc(deviceId).get();
+    if (!doc.exists) throw new functions.https.HttpsError('not-found', 'Urządzenie nie znalezione');
+
+    const { fcmToken } = doc.data();
+    if (!fcmToken) throw new functions.https.HttpsError('failed-precondition', 'Brak tokenu FCM');
+
+    await messaging.send({
+      token: fcmToken,
+      notification: {
+        title: 'Cukruś — test FCM 🎉',
+        body: 'Firebase Cloud Messaging działa poprawnie!'
+      },
+      webpush: {
+        notification: {
+          title: 'Cukruś — test FCM 🎉',
+          body: 'Firebase Cloud Messaging działa poprawnie!',
+          icon:  'https://jakubkarlo.github.io/cukrus-pwa/icon-192.svg',
+          badge: 'https://jakubkarlo.github.io/cukrus-pwa/icon-192.svg'
+        },
+        fcmOptions: { link: 'https://jakubkarlo.github.io/cukrus-pwa/' }
+      }
+    });
+
+    return { ok: true };
+  });
