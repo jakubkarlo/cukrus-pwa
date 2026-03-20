@@ -150,6 +150,24 @@ self.addEventListener('message', function (e) {
   }
 });
 
+// ─── FCM Push (Firebase Cloud Messaging) ─────────────────────────────────────
+self.addEventListener('push', function (e) {
+  var data = {};
+  try { data = e.data ? e.data.json() : {}; } catch (err) {}
+  var n = data.notification || {};
+  var title = n.title || 'Cukruś';
+  var body  = n.body  || '';
+  e.waitUntil(
+    self.registration.showNotification(title, {
+      body:  body,
+      icon:  SW_BASE + 'icon-192.svg',
+      badge: SW_BASE + 'icon-192.svg',
+      tag:   data.tag || 'cukrus-push',
+      data:  data.data || {}
+    })
+  );
+});
+
 // ─── Notification click ──────────────────────────────────────────────────────
 self.addEventListener('notificationclick', function (e) {
   e.notification.close();

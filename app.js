@@ -99,6 +99,7 @@ function loadSensors() {
     sensors = list.sort(function (a, b) { return new Date(a.expiresAt) - new Date(b.expiresAt); });
     renderSensors();
     checkNotifPermission();
+    if (typeof Push !== 'undefined') Push.init(sensors);
   });
 }
 
@@ -119,12 +120,14 @@ function addSensor(data) {
   DB.saveSensor(sensor).then(function () {
     loadSensors();
     setTimeout(triggerSWCheck, 500);
+    if (typeof Push !== 'undefined') Push.sync(sensors.concat([sensor]));
   });
 }
 
 function removeSensor(id) {
   DB.deleteSensor(id).then(function () {
     loadSensors();
+    if (typeof Push !== 'undefined') Push.sync(sensors.filter(function (s) { return s.id !== id; }));
   });
 }
 
