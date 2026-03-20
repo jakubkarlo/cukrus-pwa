@@ -4,8 +4,16 @@
       <stop offset="0%" stop-color="#7c4dff"/>
       <stop offset="100%" stop-color="#5c35cc"/>
     </linearGradient>
+    <pattern id="stripes" patternUnits="userSpaceOnUse" width="24" height="24" patternTransform="rotate(-45)">
+      <rect width="24" height="24" fill="none"/>
+      <rect width="10" height="24" fill="rgba(255,255,255,0.12)"/>
+    </pattern>
+    <clipPath id="rounded">
+      <rect width="192" height="192" rx="42"/>
+    </clipPath>
   </defs>
   <rect width="192" height="192" rx="42" fill="url(#g)"/>
+  <rect width="192" height="192" rx="42" fill="url(#stripes)" clip-path="url(#rounded)"/>
   <path d="M96 32 C96 32 52 90 52 122 A44 44 0 0 0 140 122 C140 90 96 32 96 32Z" fill="white" opacity="0.95"/>
   <circle cx="96" cy="126" r="14" fill="url(#g)"/>
   <rect x="90" y="108" width="12" height="4" rx="2" fill="url(#g)"/>
